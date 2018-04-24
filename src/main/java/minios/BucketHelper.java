@@ -1,23 +1,21 @@
 package minios;
+import io.minio.Result;
+import io.minio.errors.*;
+import io.minio.messages.Bucket;
+import io.minio.messages.Item;
+import org.xmlpull.v1.XmlPullParserException;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Iterator;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Scanner;
 
-import com.sun.org.apache.xpath.internal.SourceTree;
-import io.minio.Result;
-import io.minio.errors.ClientException;
-import io.minio.messages.Bucket;
-import io.minio.messages.Item;
-
-import javax.sound.midi.Soundbank;
-
 public class BucketHelper extends Connection {
-    public void createBucket() throws IOException, ClientException {
+    public void createBucket() throws IOException, XmlPullParserException, InsufficientDataException, NoSuchAlgorithmException, NoResponseException, InternalException, InvalidKeyException, InvalidBucketNameException, ErrorResponseException, RegionConflictException {
         String bucketname;
         Scanner input = new Scanner(System.in);
-        System.out.print("enter the name of bucket you wanna create");
+        System.out.println("enter the name of bucket you wanna create");
         bucketname = input.nextLine();
         boolean b = mc.bucketExists(bucketname);
         if (b == true) System.out.println("bucket already exists");
@@ -28,7 +26,7 @@ public class BucketHelper extends Connection {
 
     }
 
-    public void deleteBucket() throws IOException, ClientException {
+    public void deleteBucket() throws IOException, XmlPullParserException, InsufficientDataException, NoSuchAlgorithmException, NoResponseException, InternalException, InvalidKeyException, InvalidBucketNameException, ErrorResponseException {
         String bucket;
         Scanner input1 = new Scanner(System.in);
         System.out.print("enter the name of bucket you wanna delete");
@@ -42,30 +40,33 @@ public class BucketHelper extends Connection {
         }
     }
 
-    public void listBucket() throws IOException, ClientException {
-        Iterator<Bucket> ls = mc.listBuckets();
+    public void listBucket() throws IOException, XmlPullParserException, InsufficientDataException, NoSuchAlgorithmException, NoResponseException, InternalException, InvalidKeyException, InvalidBucketNameException, ErrorResponseException {
+       List<Bucket> ls = mc.listBuckets();
         System.out.println("Listing Bucket names ");
-        while (ls.hasNext())
-            System.out.println(ls.next().getName());
-
+      for(Bucket b:ls){
+          System.out.println(b.name()+b.creationDate());
+      }
     }
 
-    public void list_Objects_in_Bucket() throws IOException, ClientException {
+    public void list_Objects_in_Bucket() throws IOException, XmlPullParserException, InsufficientDataException, NoSuchAlgorithmException, NoResponseException, InternalException, InvalidKeyException, InvalidBucketNameException, ErrorResponseException {
         String buckets;
         Scanner input3 = new Scanner(System.in);
         System.out.print("enter the name of bucket you wanna list objects ");
         buckets = input3.nextLine();
-        boolean b = mc.bucketExists(buckets);
-        if (b == true) {
-            Iterator<Result<Item>> myobjects = mc.listObjects(buckets);
-            for (Iterator<Result<Item>> it = myobjects; it.hasNext(); ) {
-                Result<Item> result = it.next();
-                Item items = result.getResult();
-                System.out.println(items.getKey()+ ", " + items.size() + ", " + items.getLastModified());
+
+
+
+            boolean found = mc.bucketExists(buckets);
+            if (found) {
+
+                Iterable<Result<Item>> myObjects = mc.listObjects(buckets);
+                for (Result<Item> result : myObjects) {
+                    Item item = result.get();
+                    System.out.println(item.lastModified() + ", " + item.size() + ", " + item.objectName());
+                }
+            } else {
+                System.out.println("bucket does not exist");
             }
-
-        }
-
 
 
 
